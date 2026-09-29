@@ -11,14 +11,22 @@ React-приложение (TypeScript) для работы с GREEN-API.
 ## Установка
 
 1. Клонируй репозиторий:
-   git clone https://github.com/atsakunov/green-api-test.git
-   cd green-api-test
+
+```bash
+git clone https://github.com/atsakunov/green-api-test.git
+cd green-api-test
+```
 
 2. Установи зависимости:
-   npm install
+
+```bash
+npm install
+```
 
 ## Запуск в режиме разработки
 
+```bash
 npm start
+```
 
 Приложение откроется на http://localhost:3000
