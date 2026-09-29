@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useRootContext } from '../context/RootContext';
+import { POLLING_EMPTY_INTERVAL_MS } from '../constants';
 import {
   deleteNotification,
   receiveNotification,
@@ -66,6 +67,7 @@ const Chat = () => {
           });
 
           if (!notification) {
+            await new Promise((resolve) => setTimeout(resolve, POLLING_EMPTY_INTERVAL_MS));
             continue;
           }
 
