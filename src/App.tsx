@@ -1,14 +1,14 @@
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import { RootProvider } from './context/RootContext';
 import { AppRoutes } from './routes';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <RootProvider>
         <AppRoutes />
       </RootProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

@@ -2,6 +2,7 @@
   "name": "green",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://atsakunov.github.io/green-api-test",
   "dependencies": {
     "@types/node": "^16.18.126",
     "@types/react": "^19.3.0",
