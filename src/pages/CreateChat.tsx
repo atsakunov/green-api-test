@@ -90,17 +90,20 @@ const CreateChat = () => {
 
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Номер телефона
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={phoneNumber}
-              onChange={(event) => setPhoneNumber(event.target.value)}
-              placeholder="Например, 79991234567"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-              autoComplete="tel"
-              required
-              disabled={isLoading}
-            />
+            <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 transition focus-within:border-emerald-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
+              <span className="select-none pl-4 pr-2 text-slate-500">+375</span>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={phoneNumber}
+                onChange={(event) => setPhoneNumber(event.target.value)}
+                placeholder="291234567"
+                className="min-w-0 flex-1 rounded-2xl bg-transparent py-3.5 pr-4 text-slate-900 outline-none placeholder:text-slate-400"
+                autoComplete="tel"
+                required
+                disabled={isLoading}
+              />
+            </div>
           </label>
 
           {error ? (

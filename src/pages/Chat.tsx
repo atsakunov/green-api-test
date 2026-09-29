@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useRootContext } from '../context/RootContext';
-import { POLLING_EMPTY_INTERVAL_MS } from '../constants';
+import { POLLING_EMPTY_INTERVAL_MS, POLLING_ERROR_RETRY_MS } from '../constants';
 import {
   deleteNotification,
   receiveNotification,
@@ -55,46 +55,53 @@ const Chat = () => {
     const controller = new AbortController();
     let cancelled = false;
 
+    const processNotification = (body: NotificationBody) => {
+      const notificationChatId = body.senderData?.chatId;
+      const text = getNotificationText(body);
+      const isCurrentChat = notificationChatId === chatId;
+      const isIncoming = body.typeWebhook === 'incomingMessageReceived';
+      const isOutgoing =
+        body.typeWebhook === 'outgoingAPIMessageReceived' ||
+        body.typeWebhook === 'outgoingMessageReceived';
+
+      if (isCurrentChat && text && body.idMessage && (isIncoming || isOutgoing)) {
+        setError('');
+        appendMessage({
+          id: body.idMessage,
+          text,
+          direction: isIncoming ? 'incoming' : 'outgoing',
+          timestamp: body.timestamp ?? Date.now() / 1000,
+        });
+      }
+    };
+
+    const runPollIteration = async () => {
+      const notification = await receiveNotification({
+        idInstance,
+        apiTokenInstance,
+        receiveTimeout: 5,
+        signal: controller.signal,
+      });
+
+      if (!notification) {
+        await new Promise((resolve) => setTimeout(resolve, POLLING_EMPTY_INTERVAL_MS));
+        return;
+      }
+
+      const { receiptId, body } = notification;
+      processNotification(body);
+      await deleteNotification({
+        idInstance,
+        apiTokenInstance,
+        receiptId,
+        signal: controller.signal,
+      });
+    };
+
     const poll = async () => {
       while (!cancelled) {
         try {
-          setError('');
-          const notification = await receiveNotification({
-            idInstance,
-            apiTokenInstance,
-            receiveTimeout: 5,
-            signal: controller.signal,
-          });
-
-          if (!notification) {
-            await new Promise((resolve) => setTimeout(resolve, POLLING_EMPTY_INTERVAL_MS));
-            continue;
-          }
-
-          const { receiptId, body } = notification;
-          const notificationChatId = body.senderData?.chatId;
-          const text = getNotificationText(body);
-          const isCurrentChat = notificationChatId === chatId;
-          const isIncoming = body.typeWebhook === 'incomingMessageReceived';
-          const isOutgoing =
-            body.typeWebhook === 'outgoingAPIMessageReceived' ||
-            body.typeWebhook === 'outgoingMessageReceived';
-
-          if (isCurrentChat && text && body.idMessage && (isIncoming || isOutgoing)) {
-            appendMessage({
-              id: body.idMessage,
-              text,
-              direction: isIncoming ? 'incoming' : 'outgoing',
-              timestamp: body.timestamp ?? Date.now() / 1000,
-            });
-          }
-
-          await deleteNotification({
-            idInstance,
-            apiTokenInstance,
-            receiptId,
-            signal: controller.signal,
-          });
+          await runPollIteration();
         } catch (err) {
           if (controller.signal.aborted || cancelled) {
             break;
@@ -105,7 +112,7 @@ const Chat = () => {
               ? err.message
               : 'Не удалось получить уведомления'
           );
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, POLLING_ERROR_RETRY_MS));
         }
       }
     };
@@ -116,7 +123,7 @@ const Chat = () => {
       cancelled = true;
       controller.abort();
     };
-  }, [idInstance, apiTokenInstance, chatId, appendMessage]);
+  }, [idInstance, apiTokenInstance, chatId]);
 
   if (!chatId) {
     return <Navigate to="/create-chat" replace />;

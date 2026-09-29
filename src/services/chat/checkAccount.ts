@@ -1,10 +1,9 @@
-import { DEFAULT_API_URL } from '../../constants';
+import { api } from '../api';
 
 type CheckAccountBaseParams = {
   idInstance: string;
   apiTokenInstance: string;
   force?: boolean;
-  apiUrl?: string;
 };
 
 export type CheckAccountParams = CheckAccountBaseParams &
@@ -34,9 +33,8 @@ export const checkAccount = async ({
   phoneNumber,
   username,
   force,
-  apiUrl = DEFAULT_API_URL,
 }: CheckAccountParams): Promise<CheckAccountResponse> => {
-  const url = `${apiUrl}/waInstance${idInstance}/checkAccount/${apiTokenInstance}`;
+  const url = `/waInstance${idInstance}/checkAccount/${apiTokenInstance}`;
 
   const body: {
     phoneNumber?: number;
@@ -56,18 +54,5 @@ export const checkAccount = async ({
     body.force = force;
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`CheckAccount failed (${response.status}): ${errorText}`);
-  }
-
-  return response.json();
-}
+  return api.post<CheckAccountResponse>(url, body);
+};

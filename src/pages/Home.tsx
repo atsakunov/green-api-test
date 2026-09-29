@@ -38,7 +38,7 @@ const Home = () => {
 
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            idInstance
+            Инстанс
             <input
               type="text"
               name="idInstance"
@@ -52,7 +52,7 @@ const Home = () => {
           </label>
 
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            apiTokenInstance
+            Токен
             <input
               type="password"
               name="apiTokenInstance"

@@ -1,4 +1,4 @@
-import { DEFAULT_API_URL } from '../../constants';
+import { api } from '../api';
 
 export type NotificationSenderData = {
   chatId?: string;
@@ -31,7 +31,6 @@ export type ReceiveNotificationParams = {
   idInstance: string;
   apiTokenInstance: string;
   receiveTimeout?: number;
-  apiUrl?: string;
   signal?: AbortSignal;
 };
 
@@ -44,28 +43,9 @@ export const receiveNotification = async ({
   idInstance,
   apiTokenInstance,
   receiveTimeout = 5,
-  apiUrl = DEFAULT_API_URL,
   signal,
 }: ReceiveNotificationParams): Promise<ReceiveNotificationResponse> => {
-  const url = new URL(
-    `${apiUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}`
-  );
-  url.searchParams.set('receiveTimeout', String(receiveTimeout));
+  const url = `/waInstance${idInstance}/receiveNotification/${apiTokenInstance}?receiveTimeout=${receiveTimeout}`;
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    signal,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`ReceiveNotification failed (${response.status}): ${errorText}`);
-  }
-
-  const text = await response.text();
-  if (!text) {
-    return null;
-  }
-
-  return JSON.parse(text) as ReceiveNotificationResponse;
-}
+  return api.get<ReceiveNotificationResponse>(url, signal);
+};
