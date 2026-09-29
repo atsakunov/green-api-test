@@ -1,18 +1,21 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { useRootContext } from '../context/RootContext';
-import { POLLING_EMPTY_INTERVAL_MS, POLLING_ERROR_RETRY_MS } from '../constants';
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useRootContext } from "../context/RootContext";
+import {
+  POLLING_EMPTY_INTERVAL_MS,
+  POLLING_ERROR_RETRY_MS,
+} from "../constants";
 import {
   deleteNotification,
   receiveNotification,
   sendMessage,
   type NotificationBody,
-} from '../services/chat';
+} from "../services/chat";
 
 type ChatMessage = {
   id: string;
   text: string;
-  direction: 'incoming' | 'outgoing';
+  direction: "incoming" | "outgoing";
   timestamp: number;
 };
 
@@ -22,14 +25,14 @@ const getNotificationText = (body: NotificationBody): string | null => {
     body.messageData?.extendedTextMessageData?.text;
 
   return text?.trim() ? text : null;
-}
+};
 
 const Chat = () => {
   const navigate = useNavigate();
   const { idInstance, apiTokenInstance, chatId, logout } = useRootContext();
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const seenIdsRef = useRef(new Set<string>());
@@ -44,7 +47,7 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -59,17 +62,22 @@ const Chat = () => {
       const notificationChatId = body.senderData?.chatId;
       const text = getNotificationText(body);
       const isCurrentChat = notificationChatId === chatId;
-      const isIncoming = body.typeWebhook === 'incomingMessageReceived';
+      const isIncoming = body.typeWebhook === "incomingMessageReceived";
       const isOutgoing =
-        body.typeWebhook === 'outgoingAPIMessageReceived' ||
-        body.typeWebhook === 'outgoingMessageReceived';
+        body.typeWebhook === "outgoingAPIMessageReceived" ||
+        body.typeWebhook === "outgoingMessageReceived";
 
-      if (isCurrentChat && text && body.idMessage && (isIncoming || isOutgoing)) {
-        setError('');
+      if (
+        isCurrentChat &&
+        text &&
+        body.idMessage &&
+        (isIncoming || isOutgoing)
+      ) {
+        setError("");
         appendMessage({
           id: body.idMessage,
           text,
-          direction: isIncoming ? 'incoming' : 'outgoing',
+          direction: isIncoming ? "incoming" : "outgoing",
           timestamp: body.timestamp ?? Date.now() / 1000,
         });
       }
@@ -84,7 +92,9 @@ const Chat = () => {
       });
 
       if (!notification) {
-        await new Promise((resolve) => setTimeout(resolve, POLLING_EMPTY_INTERVAL_MS));
+        await new Promise((resolve) =>
+          setTimeout(resolve, POLLING_EMPTY_INTERVAL_MS),
+        );
         return;
       }
 
@@ -110,9 +120,11 @@ const Chat = () => {
           setError(
             err instanceof Error
               ? err.message
-              : 'Не удалось получить уведомления'
+              : "Не удалось получить уведомления",
           );
-          await new Promise((resolve) => setTimeout(resolve, POLLING_ERROR_RETRY_MS));
+          await new Promise((resolve) =>
+            setTimeout(resolve, POLLING_ERROR_RETRY_MS),
+          );
         }
       }
     };
@@ -123,7 +135,7 @@ const Chat = () => {
       cancelled = true;
       controller.abort();
     };
-  }, [idInstance, apiTokenInstance, chatId]);
+  }, [idInstance, apiTokenInstance, chatId, appendMessage]);
 
   if (!chatId) {
     return <Navigate to="/create-chat" replace />;
@@ -131,7 +143,7 @@ const Chat = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -142,7 +154,7 @@ const Chat = () => {
       return;
     }
 
-    setError('');
+    setError("");
     setIsSending(true);
 
     try {
@@ -156,12 +168,14 @@ const Chat = () => {
       appendMessage({
         id: result.idMessage,
         text,
-        direction: 'outgoing',
+        direction: "outgoing",
         timestamp: Date.now() / 1000,
       });
-      setMessage('');
+      setMessage("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось отправить сообщение');
+      setError(
+        err instanceof Error ? err.message : "Не удалось отправить сообщение",
+      );
     } finally {
       setIsSending(false);
     }
@@ -191,13 +205,13 @@ const Chat = () => {
             messages.map((item) => (
               <div
                 key={item.id}
-                className={`flex ${item.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${item.direction === "outgoing" ? "justify-end" : "justify-start"}`}
               >
                 <p
                   className={`max-w-[80%] rounded-3xl px-4 py-3 text-sm leading-relaxed ${
-                    item.direction === 'outgoing'
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-white/90 text-slate-800 border border-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]'
+                    item.direction === "outgoing"
+                      ? "bg-emerald-500 text-white"
+                      : "bg-white/90 text-slate-800 border border-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
                   }`}
                 >
                   {item.text}
@@ -233,12 +247,12 @@ const Chat = () => {
             className="rounded-full bg-emerald-500 px-5 py-3 font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!message.trim() || isSending}
           >
-            {isSending ? '…' : 'Отправить'}
+            {isSending ? "…" : "Отправить"}
           </button>
         </form>
       </div>
     </main>
   );
-}
+};
 
 export default Chat;
